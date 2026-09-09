@@ -16,8 +16,8 @@ export default defineConfig({
     ['html', { outputFolder: 'playwright-report', open: 'never' }],
     ['list']
   ],
-  use: {
-    baseURL: 'https://www.liverpool.com.mx',
+    use: {
+    baseURL: 'https://liverpool.com.mx',
     headless: isHeadless,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
@@ -26,6 +26,10 @@ export default defineConfig({
     actionTimeout: 15_000,
     locale: 'es-MX',
     timezoneId: 'America/Mexico_City',
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    launchOptions: {
+      args: ['--disable-blink-features=AutomationControlled'],
+    },
   },
   projects: [
     {
@@ -33,4 +37,5 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
+  },
 });
