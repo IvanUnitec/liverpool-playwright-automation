@@ -26,7 +26,8 @@ export class SearchResultsPage {
   async search(term: string): Promise<void> {
     await this.searchInput.fill(term);
     await this.searchInput.press('Enter');
-    await this.page.waitForLoadState('networkidle');
+    // Esperamos a que la URL cambie o que aparezca el contenedor de resultados en lugar de tumbar la red
+    await this.page.waitForURL(/s=/i, { timeout: 15_000 }).catch(() => {});
   }
 
   async filterByColor(color: string): Promise<void> {
@@ -36,6 +37,7 @@ export class SearchResultsPage {
     }
     
     const colorSection = this.page.getByText(/color/i).first();
+    await expect(colorSection).toBeVisible({ timeout: 10_000 });
     if (await colorSection.isVisible()) {
       await colorSection.click();
     }
@@ -48,11 +50,12 @@ export class SearchResultsPage {
     if (await apply.count()) {
       await apply.click();
     }
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(2000);
   }
 
   async sortLowToHigh(): Promise<void> {
     const sortDropdown = this.page.locator('select, [id*="sort"], button:has-text("Ordenar")').first();
+    await expect(sortDropdown).toBeVisible({ timeout: 10_000 });
     if (await sortDropdown.isVisible()) {
       if ((await sortDropdown.tagName()) === 'select') {
         await sortDropdown.selectOption({ index: 1 });
@@ -61,12 +64,15 @@ export class SearchResultsPage {
         await this.page.getByText(/menor precio|precio de menor a mayor/i).first().click();
       }
     }
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(2000);
   }
 
   async extractFirstFive(): Promise<Product[]> {
     const productCards = this.page.locator('ol li, card, [class*="m-product-card"]').locator('visible=true');
     const products: Product[] = [];
+    
+    // Esperamos brevemente a que haya al menos un producto pintado en pantalla
+    await expect(productCards.first()).toBeVisible({ timeout: 10_000 });
     const count = Math.min(5, await productCards.count());
 
     for (let i = 0; i < count; i++) {
