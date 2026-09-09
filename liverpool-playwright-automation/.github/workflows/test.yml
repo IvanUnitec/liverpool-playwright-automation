@@ -22,22 +22,29 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: npm install
+        # Indicamos la subcarpeta exacta donde está el package.json real
+        run: |
+          cd liverpool-playwright-automation/liverpool-playwright-automation
+          npm install
 
       - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium
+        run: |
+          cd liverpool-playwright-automation/liverpool-playwright-automation
+          npx playwright install --with-deps chromium
 
       - name: Run tests headless
         env:
           HEADLESS: "true"
-        run: npm test
+        run: |
+          cd liverpool-playwright-automation/liverpool-playwright-automation
+          npx playwright test
 
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-html-report
-          path: playwright-report/
+          path: liverpool-playwright-automation/liverpool-playwright-automation/playwright-report/
           retention-days: 14
 
       - name: Upload failure diagnostics
@@ -45,5 +52,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-failure-artifacts
-          path: test-results/
+          path: liverpool-playwright-automation/liverpool-playwright-automation/test-results/
           retention-days: 14
