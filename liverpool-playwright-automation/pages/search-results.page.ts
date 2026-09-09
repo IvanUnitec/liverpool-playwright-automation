@@ -26,11 +26,14 @@ export class SearchResultsPage {
   async search(term: string): Promise<void> {
     await this.searchInput.fill(term);
     await this.searchInput.press('Enter');
-    // Esperamos a que la URL cambie o que aparezca el contenedor de resultados en lugar de tumbar la red
     await this.page.waitForURL(/s=/i, { timeout: 15_000 }).catch(() => {});
+    // Pausa estratégica para que cargue la interfaz
+    await this.page.waitForTimeout(4000);
   }
 
   async filterByColor(color: string): Promise<void> {
+    await this.page.locator('body').waitFor({ state: 'visible' });
+
     const filterButton = this.page.locator('button:has-text("Filtrar"), [data-testid="filter-button"], text=/Filtrar/i').first();
     if (await filterButton.isVisible()) {
       await filterButton.click();
@@ -71,7 +74,6 @@ export class SearchResultsPage {
     const productCards = this.page.locator('ol li, card, [class*="m-product-card"]').locator('visible=true');
     const products: Product[] = [];
     
-    // Esperamos brevemente a que haya al menos un producto pintado en pantalla
     await expect(productCards.first()).toBeVisible({ timeout: 10_000 });
     const count = Math.min(5, await productCards.count());
 
