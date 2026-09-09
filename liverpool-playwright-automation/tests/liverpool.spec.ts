@@ -10,11 +10,17 @@ chromium.use(stealthPlugin());
 // Sobrescribimos el fixture "page" nativo para usar la instancia camuflada con Stealth
 const test = baseTest.extend<{ page: any }>({
   page: async ({}, use) => {
-    const browser = await chromium.launch();
-    // Forzamos un tamaño de pantalla de escritorio grande para activar la barra de filtros lateral
-    const context = await browser.newContext({
-      viewport: { width: 1920, height: 1080 }
+    // 1. Lanzamos Chromium aplicando el argumento para ocultar la automatización
+    const browser = await chromium.launch({
+      args: ['--disable-blink-features=AutomationControlled']
     });
+    
+    // 2. Creamos el contexto con el tamaño de pantalla grande y el User-Agent real
+    const context = await browser.newContext({
+      viewport: { width: 1920, height: 1080 },
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+    });
+    
     const page = await context.newPage();
     await use(page);
     await browser.close();
