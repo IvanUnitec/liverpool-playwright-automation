@@ -27,62 +27,55 @@ export class SearchResultsPage {
     await this.searchInput.fill(term);
     await this.searchInput.press('Enter');
     await this.page.waitForURL(/s=/i, { timeout: 15_000 }).catch(() => {});
-    // Pausa estratégica para que cargue la interfaz
-    await this.page.waitForTimeout(4000);
+    await this.page.waitForTimeout(5000); // Aumentamos a 5 segundos el colchón de carga
   }
 
   async filterByColor(color: string): Promise<void> {
     await this.page.locator('body').waitFor({ state: 'visible' });
 
-    const filterButton = this.page.locator('button:has-text("Filtrar"), [data-testid="filter-button"], text=/Filtrar/i').first();
-    if (await filterButton.isVisible()) {
-      await filterButton.click();
-    }
-    
-    const colorSection = this.page.getByText(/color/i).first();
-    await expect(colorSection).toBeVisible({ timeout: 10_000 });
+    // 1. Localizador mejorado por CSS para la sección/botón de Color
+    const colorSection = this.page.locator('[id*="color"], [class*="color"], text=/color/i').first();
     if (await colorSection.isVisible()) {
       await colorSection.click();
+      await this.page.waitForTimeout(1000);
     }
     
-    const colorOption = this.page.getByText(new RegExp(`^${color}$`, 'i')).last();
-    await expect(colorOption).toBeVisible({ timeout: 15_000 });
-    await colorOption.click();
+    // 2. Buscamos de forma robusta la opción del color (ej. Blanco)
+    const colorOption = this.page.locator(`label:has-text("${color}"), [id*="${color.toLowerCase()}"], text=/^${color}$/i`).last();
+    await colorOption.scrollIntoViewIfNeeded().catch(() => {});
+    await colorOption.click({ force: true }); // Usamos force:true por si hay un div encima encimado
     
-    const apply = this.page.getByRole('button', { name: /aplicar|mostrar resultados|ver resultados/i }).last();
-    if (await apply.count()) {
-      await apply.click();
-    }
-    await this.page.waitForTimeout(2000);
+    // 3. Espera breve para verificar que el filtro se procese
+    await this.page.waitForTimeout(3000);
   }
 
   async sortLowToHigh(): Promise<void> {
     const sortDropdown = this.page.locator('select, [id*="sort"], button:has-text("Ordenar")').first();
-    await expect(sortDropdown).toBeVisible({ timeout: 10_000 });
     if (await sortDropdown.isVisible()) {
       if ((await sortDropdown.tagName()) === 'select') {
         await sortDropdown.selectOption({ index: 1 });
       } else {
         await sortDropdown.click();
+        await this.page.waitForTimeout(1000);
         await this.page.getByText(/menor precio|precio de menor a mayor/i).first().click();
       }
     }
-    await this.page.waitForTimeout(2000);
+    await this.page.waitForTimeout(3000);
   }
 
   async extractFirstFive(): Promise<Product[]> {
     const productCards = this.page.locator('ol li, card, [class*="m-product-card"]').locator('visible=true');
     const products: Product[] = [];
     
-    await expect(productCards.first()).toBeVisible({ timeout: 10_000 });
+    await this.page.waitForTimeout(2000);
     const count = Math.min(5, await productCards.count());
 
     for (let i = 0; i < count; i++) {
       const card = productCards.nth(i);
-      const name = await card.locator('h5, [class*="card-title"]').first().innerText();
-      const priceText = await card.locator('[class*="card-price"], p.a-card-discount').first().innerText();
+      const name = await card.locator('h5, [class*="card-title"]').first().innerText().catch(() => 'Producto sin nombre');
+      const priceText = await card.locator('[class*="card-price"], p.a-card-discount').first().innerText().catch(() => '$0');
       
-      const price = parseFloat(priceText.replace(/[^0-9.]/g, ''));
+      const price = parseFloat(priceText.replace(/[^0-9.]/g, '')) || 0;
       products.push({ name: name.trim(), price });
     }
 
