@@ -23,25 +23,20 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd liverpool-playwright-automation/liverpool-playwright-automation
+          TARGET_DIR=$(find . -name "package.json" -not -path "*/node_modules/*" -exec dirname {} \;)
+          cd "$TARGET_DIR"
           npm install
 
       - name: Install Playwright browser
         run: |
-          cd liverpool-playwright-automation/liverpool-playwright-automation
+          TARGET_DIR=$(find . -name "package.json" -not -path "*/node_modules/*" -exec dirname {} \;)
+          cd "$TARGET_DIR"
           npx playwright install --with-deps chromium
 
       - name: Run tests headless
         env:
           HEADLESS: "true"
         run: |
-          cd liverpool-playwright-automation/liverpool-playwright-automation
+          TARGET_DIR=$(find . -name "package.json" -not -path "*/node_modules/*" -exec dirname {} \;)
+          cd "$TARGET_DIR"
           npx playwright test
-
-      - name: Upload Playwright HTML report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-html-report
-          path: liverpool-playwright-automation/liverpool-playwright-automation/playwright-report/
-          retention-days: 14
