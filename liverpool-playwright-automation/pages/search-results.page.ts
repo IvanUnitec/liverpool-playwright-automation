@@ -46,11 +46,12 @@ export class SearchResultsPage {
     }
     
     // 3. Buscamos directamente el texto del color ("Blanco") sin importar si es checkbox o etiqueta
-        // 3. Buscamos el elemento interactivo usando los atributos específicos que maneja Liverpool para los colores
+    // 3. Buscamos el elemento interactivo usando los atributos específicos que maneja Liverpool para los colores
     const colorOption = this.page.locator(`[title*="${color}" i], [data-value*="${color}" i], label:has-text("${color}")`).last();
-    // Forzamos el scroll y hacemos el clic directo sobre el contenedor del color
+     // Aseguramos el scroll hacia el elemento
     await colorOption.scrollIntoViewIfNeeded({ timeout: 5000 }).catch(() => {});
-    await colorOption.click({ force: true });
+    // REEMPLAZA LA LÍNEA DEL CLICK POR ESTA: Ejecuta un clic directo de JavaScript saltándose bloqueos visuales
+    await colorOption.dispatchEvent('click');
     
     // 4. Pausa de estabilidad para que se recargue el catálogo filtrado
     await this.page.waitForTimeout(4000);
