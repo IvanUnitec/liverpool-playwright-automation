@@ -23,9 +23,15 @@ export class SearchResultsPage {
    * @description Navega a la URL raíz (configurada en playwright.config) y espera a que el DOM básico cargue.
    */
   async open(): Promise<void> {
-    await this.page.goto('/', { waitUntil: 'domcontentloaded' });
-  // Aserción blanda para asegurar que la página realmente cargó y el buscador es interactuable
-    await expect(this.searchInput).toBeVisible();
+  // 1. Modifica la propiedad webdriver antes de que carguen los scripts de la página
+  await this.page.addInitScript(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+  });
+  // 2. Cambia 'domcontentloaded' por 'commit' para interceptar la página antes
+  await this.page.goto('/', { waitUntil: 'commit' }); 
+  // 3. Agrega una pausa breve que simule el tiempo de reacción humano
+  await this.page.waitForTimeout(3000);
+  await expect(this.searchInput).toBeVisible();
   }
   /**
    * @method search
