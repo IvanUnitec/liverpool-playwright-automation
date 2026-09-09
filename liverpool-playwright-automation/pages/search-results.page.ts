@@ -45,12 +45,11 @@ export class SearchResultsPage {
       await this.page.waitForTimeout(1000);
     }
     
-    // 3. Seleccionamos el contenedor o checkbox del color específico (ej. Blanco) de forma forzada
-    const checkboxColor = this.page.locator(`input[type="checkbox"][id*="${color.toLowerCase()}"], input[id*="Blanco"], label:has-text("${color}")`).first();
-    await checkboxColor.scrollIntoViewIfNeeded().catch(() => {});
-    
-    // Hacemos clic forzado saltándonos capas intermedias del diseño CSS de la tienda
-    await checkboxColor.click({ force: true });
+    // 3. Buscamos directamente el texto del color ("Blanco") sin importar si es checkbox o etiqueta
+    const colorOption = this.page.getByText(new RegExp(`^${color}$`, 'i')).last();    
+    // Forzamos el scroll y el clic directo sobre el texto del color
+    await colorOption.scrollIntoViewIfNeeded({ timeout: 5000 }).catch(() => {});
+    await colorOption.click({ force: true });
     
     // 4. Pausa de estabilidad para que se recargue el catálogo filtrado
     await this.page.waitForTimeout(4000);
