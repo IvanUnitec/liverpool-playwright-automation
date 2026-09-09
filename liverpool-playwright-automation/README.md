@@ -1,3 +1,11 @@
+\[!\[Playwright Tests](https://github.com)](https://github.com)
+
+
+
+\# Liverpool Playwright Automation Exercise
+
+
+
 # Liverpool Playwright Automation Exercise
 
 Automatización de un flujo de e-commerce de Liverpool usando **Playwright + TypeScript**.
@@ -16,10 +24,10 @@ Automatización de un flujo de e-commerce de Liverpool usando **Playwright + Typ
 
 ## Requisitos
 
-- Node.js 22+
-- npm
-- No utiliza Selenium.
-- No utiliza Python.
+* Node.js 22+
+* npm
+* No utiliza Selenium.
+* No utiliza Python.
 
 ## Instalación
 
@@ -63,14 +71,14 @@ npm run typecheck
 
 ## Decisiones de diseño
 
-- Page Object Model para separar interacción de la prueba.
-- Configuración centralizada en `playwright.config.ts`.
-- `HEADLESS=false` como opción explícita para modo headed.
-- `screenshot: only-on-failure`, `trace: retain-on-failure` y video en fallos.
-- Captura de respuestas `fetch/xhr` con contenido JSON.
-- Comparación normalizada de nombres y precios.
-- Sin precios/nombres hard-coded.
-- El catálogo real es dinámico; por eso la validación de red exige 3/5 coincidencias, tal como solicita el ejercicio.
+* Page Object Model para separar interacción de la prueba.
+* Configuración centralizada en `playwright.config.ts`.
+* `HEADLESS=false` como opción explícita para modo headed.
+* `screenshot: only-on-failure`, `trace: retain-on-failure` y video en fallos.
+* Captura de respuestas `fetch/xhr` con contenido JSON.
+* Comparación normalizada de nombres y precios.
+* Sin precios/nombres hard-coded.
+* El catálogo real es dinámico; por eso la validación de red exige 3/5 coincidencias, tal como solicita el ejercicio.
 
 ## Estructura
 
@@ -81,12 +89,53 @@ npm run typecheck
 ├── tests/liverpool.spec.ts
 ├── utils/network-products.ts
 ├── playwright.config.ts
-├── TEST_STRATEGY.md
+├── TEST\\\_STRATEGY.md
 ├── package.json
 ├── tsconfig.json
 └── README.md
 ```
 
-## Nota sobre el sitio real
+\## Cómo instalarlo y ejecutarlo localmente
 
-Liverpool puede cambiar selectores, experimentos A/B, estructura DOM, filtros o endpoints. Los localizadores están concentrados en Page Objects para reducir el costo de mantenimiento. Si el sitio cambia, la primera modificación debería hacerse en `pages/search-results.page.ts`, no en la lógica de negocio de la prueba.
+
+
+1\. Instala todas las dependencias necesarias:
+
+&#x20;  ```bash
+
+&#x20;  npm install
+
+&#x20;  ```
+
+2\. Instala los navegadores de Playwright:
+
+&#x20;  ```bash
+
+&#x20;  npx playwright install
+
+&#x20;  ```
+
+
+
+\## Cómo ejecutar las pruebas
+
+
+
+\### Ejecución en modo sin interfaz gráfica (Headless / Por defecto)
+
+```bash
+
+npx playwright test
+
+```
+
+
+
+\### Ejecución en modo con interfaz gráfica (Headed / Modo visual)
+
+```bash
+
+npx playwright test --headed
+
+```
+
