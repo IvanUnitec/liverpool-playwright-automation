@@ -58,17 +58,17 @@ export class SearchResultsPage {
   }
 
   async sortLowToHigh(): Promise<void> {
-    // Localizador del menú desplegable de ordenamiento en Liverpool
-    const sortDropdown = this.page.locator('select, .a-select-filter, [id*="sort"]').first();
-    if (await sortDropdown.isVisible()) {
-      if ((await sortDropdown.tagName()) === 'select') {
-        await sortDropdown.selectOption({ index: 1 });
-      } else {
-        await sortDropdown.click().catch(() => {});
-        await this.page.waitForTimeout(1000);
-        await this.page.locator('a:has-text("Menor precio"), li:has-text("Menor precio"), text=/menor precio/i').first().click({ force: true });
-      }
-    }
+    // 1. Buscamos el botón principal de ordenamiento (suele decir "Relevancia" u "Ordenar por")
+    const sortButton = this.page.locator('button:has-text("Relevancia"), button:has-text("Ordenar"), .a-select-filter, [class*="sort"]').first();
+    // Forzamos la apertura del menú desplegable de ordenamiento
+    await sortButton.scrollIntoViewIfNeeded().catch(() => {});
+    await sortButton.dispatchEvent('click');
+    await this.page.waitForTimeout(1000);
+    // 2. Buscamos la opción de "Menor precio" dentro de la lista que se despliega
+    const lowToHighOption = this.page.locator('a:has-text("Menor precio"), li:has-text("Menor precio"), [data-value="sortLowToHigh"], text=/menor precio/i').first();
+    // Hacemos clic directo a través de JavaScript para procesar el ordenamiento
+    await lowToHighOption.dispatchEvent('click');  
+    // Pausa de estabilidad para que el catálogo ordene los productos de menor a mayor en pantalla
     await this.page.waitForTimeout(4000);
   }
 
