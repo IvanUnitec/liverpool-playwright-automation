@@ -1,0 +1,39 @@
+name: Playwright Tests
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+        
+    - name: Install dependencies
+      # Accedemos a la subcarpeta real donde se encuentra tu package.json
+      run: |
+        cd liverpool-playwright-automation/liverpool-playwright-automation
+        npm install
+        
+    - name: Install Playwright Browsers
+      run: |
+        cd liverpool-playwright-automation/liverpool-playwright-automation
+        npx playwright install --with-deps
+        
+    - name: Run Playwright tests
+      run: |
+        cd liverpool-playwright-automation/liverpool-playwright-automation
+        npx playwright test
+        
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: playwright-report
+        path: liverpool-playwright-automation/liverpool-playwright-automation/playwright-report/
+        retention-days: 30
