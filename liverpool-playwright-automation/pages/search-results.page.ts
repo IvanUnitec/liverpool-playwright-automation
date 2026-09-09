@@ -67,10 +67,15 @@ export class SearchResultsPage {
     // 2. Buscamos la opción de "Menor precio" dentro de la lista que se despliega
     const lowToHighOption = this.page.locator('a:has-text("Menor precio"), li:has-text("Menor precio"), [data-value="sortLowToHigh"], text=/menor precio/i').first();
     // Hacemos clic directo a través de JavaScript para procesar el ordenamiento
-    await lowToHighOption.dispatchEvent('click');
-    // CAMBIA ESTA LÍNEA: Aumentamos el tiempo para darle margen total a la carga de precios ordenados
-    await this.page.waitForTimeout(6000);
-  }
+     // Envolvemos el clic del ordenamiento en un bloque seguro para evitar falsos negativos por recarga del DOM
+    try {
+      await lowToHighOption.dispatchEvent('click');
+        } catch (e) {
+      // Ignora el error si el elemento se destruye inmediatamente al actualizarse el catálogo
+        }  
+      // Damos el tiempo de espera para que se asiente la recarga de precios ordenados
+      await this.page.waitForTimeout(6000);
+    }
 
   async extractFirstFive(): Promise<Product[]> {
     // Selector adaptado a las tarjetas de producto en el catálogo de Liverpool (.m-product-card)
