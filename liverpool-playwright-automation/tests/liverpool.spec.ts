@@ -11,7 +11,10 @@ chromium.use(stealthPlugin());
 const test = baseTest.extend<{ page: any }>({
   page: async ({}, use) => {
     const browser = await chromium.launch();
-    const context = await browser.newContext();
+    // Forzamos un tamaño de pantalla de escritorio grande para activar la barra de filtros lateral
+    const context = await browser.newContext({
+      viewport: { width: 1920, height: 1080 }
+    });
     const page = await context.newPage();
     await use(page);
     await browser.close();
