@@ -50,15 +50,32 @@ export class SearchResultsPage {
    * @description Interactúa de forma dinámica con los modales laterales de filtrado. 
    * Expande la sección de colores, selecciona el color especificado y aplica los resultados.
    */
-  async filterByColor(color: string): Promise<void> {
-    const filterButton = this.page.getByText(/Filtrar/i).first();
-    await filterButton.click();
-
-    const colorSection = this.page.getByText(/^Color$/i).first();
-    if (await colorSection.count()) {
+    async filterByColor(color: string): Promise<void> {
+    // 1. Intentamos buscar por un texto común en el botón de filtros laterales o modales
+    const filterButton = this.page.locator('button:has-text("Filtrar"), [data-testid="filter-button"], text=/Filtrar/i').first();
+    
+    // 2. Agregamos una verificación para asegurarnos de que el botón sea visible antes de hacer clic
+    if (await filterButton.isVisible()) {
+      await filterButton.click();
+    }
+    
+    // 3. Despliega la sección interna de colores si está disponible
+    const colorSection = this.page.getByText(/color/i).first();
+    if (await colorSection.isVisible()) {
       await colorSection.click();
     }
-
+    
+    // 4. Ubica de forma exacta la opción del color deseado (ej. Blanco) y haz clic
+    const colorOption = this.page.getByText(new RegExp(`^${color}$`, 'i')).last();
+    await expect(colorOption).toBeVisible({ timeout: 15_000 });
+    await colorOption.click();
+    
+    // 5. Aplica los cambios presionando el botón final de confirmación
+    const apply = this.page.getByRole('button', { name: /aplicar|mostrar resultados|ver resultados/i }).last();
+    if (await apply.count()) {
+      await apply.click();
+    }
+  }
     const colorOption = this.page.getByText(new RegExp(`^${color}$`, 'i')).last();
     await expect(colorOption).toBeVisible({ timeout: 15_000 });
     await colorOption.click();
