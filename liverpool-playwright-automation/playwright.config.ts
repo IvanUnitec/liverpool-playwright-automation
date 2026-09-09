@@ -17,7 +17,7 @@ export default defineConfig({
     ['list']
   ],
     use: {
-    baseURL: 'https://liverpool.com.mx',
+    baseURL: 'https://www.liverpool.com.mx/tienda/',
     headless: isHeadless,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
