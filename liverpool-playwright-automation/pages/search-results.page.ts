@@ -67,9 +67,9 @@ export class SearchResultsPage {
     // 2. Buscamos la opción de "Menor precio" dentro de la lista que se despliega
     const lowToHighOption = this.page.locator('a:has-text("Menor precio"), li:has-text("Menor precio"), [data-value="sortLowToHigh"], text=/menor precio/i').first();
     // Hacemos clic directo a través de JavaScript para procesar el ordenamiento
-    await lowToHighOption.dispatchEvent('click');  
-    // Pausa de estabilidad para que el catálogo ordene los productos de menor a mayor en pantalla
-    await this.page.waitForTimeout(4000);
+    await lowToHighOption.dispatchEvent('click');
+    // CAMBIA ESTA LÍNEA: Aumentamos el tiempo para darle margen total a la carga de precios ordenados
+    await this.page.waitForTimeout(6000);
   }
 
   async extractFirstFive(): Promise<Product[]> {
