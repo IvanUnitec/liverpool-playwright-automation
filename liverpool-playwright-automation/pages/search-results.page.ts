@@ -27,44 +27,53 @@ export class SearchResultsPage {
     await this.searchInput.fill(term);
     await this.searchInput.press('Enter');
     await this.page.waitForURL(/s=/i, { timeout: 15_000 }).catch(() => {});
-    await this.page.waitForTimeout(5000); // Aumentamos a 5 segundos el colchón de carga
+    await this.page.waitForTimeout(6000); // Damos margen completo de carga inicial
   }
 
   async filterByColor(color: string): Promise<void> {
     await this.page.locator('body').waitFor({ state: 'visible' });
 
-    // 1. Localizador mejorado por CSS para la sección/botón de Color
-    const colorSection = this.page.locator('[id*="color"], [class*="color"], text=/color/i').first();
-    if (await colorSection.isVisible()) {
-      await colorSection.click();
+    // 1. Buscamos el contenedor del filtro de color en el menú lateral de Liverpool
+    const colorGroup = this.page.locator('.mdc-chip-set, .a-search-filter, [id*="color"], [class*="filter"]').type === undefined 
+      ? this.page.locator('div.facet-container, div.plp-filter-options').filter({ hasText: /color/i }).first()
+      : this.page.locator('[id*="color"]').first();
+
+    // 2. Si la sección de color está colapsada, intentamos expandirla
+    const colorHeader = this.page.locator('button:has-text("Color"), h5:has-text("Color"), p:has-text("Color")').first();
+    if (await colorHeader.isVisible()) {
+      await colorHeader.click().catch(() => {});
       await this.page.waitForTimeout(1000);
     }
     
-    // 2. Buscamos de forma robusta la opción del color (ej. Blanco)
-    const colorOption = this.page.locator(`label:has-text("${color}"), [id*="${color.toLowerCase()}"], text=/^${color}$/i`).last();
-    await colorOption.scrollIntoViewIfNeeded().catch(() => {});
-    await colorOption.click({ force: true }); // Usamos force:true por si hay un div encima encimado
+    // 3. Seleccionamos el contenedor o checkbox del color específico (ej. Blanco) de forma forzada
+    const checkboxColor = this.page.locator(`input[type="checkbox"][id*="${color.toLowerCase()}"], input[id*="Blanco"], label:has-text("${color}")`).first();
+    await checkboxColor.scrollIntoViewIfNeeded().catch(() => {});
     
-    // 3. Espera breve para verificar que el filtro se procese
-    await this.page.waitForTimeout(3000);
+    // Hacemos clic forzado saltándonos capas intermedias del diseño CSS de la tienda
+    await checkboxColor.click({ force: true });
+    
+    // 4. Pausa de estabilidad para que se recargue el catálogo filtrado
+    await this.page.waitForTimeout(4000);
   }
 
   async sortLowToHigh(): Promise<void> {
-    const sortDropdown = this.page.locator('select, [id*="sort"], button:has-text("Ordenar")').first();
+    // Localizador del menú desplegable de ordenamiento en Liverpool
+    const sortDropdown = this.page.locator('select, .a-select-filter, [id*="sort"]').first();
     if (await sortDropdown.isVisible()) {
       if ((await sortDropdown.tagName()) === 'select') {
         await sortDropdown.selectOption({ index: 1 });
       } else {
-        await sortDropdown.click();
+        await sortDropdown.click().catch(() => {});
         await this.page.waitForTimeout(1000);
-        await this.page.getByText(/menor precio|precio de menor a mayor/i).first().click();
+        await this.page.locator('a:has-text("Menor precio"), li:has-text("Menor precio"), text=/menor precio/i').first().click({ force: true });
       }
     }
-    await this.page.waitForTimeout(3000);
+    await this.page.waitForTimeout(4000);
   }
 
   async extractFirstFive(): Promise<Product[]> {
-    const productCards = this.page.locator('ol li, card, [class*="m-product-card"]').locator('visible=true');
+    // Selector adaptado a las tarjetas de producto en el catálogo de Liverpool (.m-product-card)
+    const productCards = this.page.locator('.m-product-card, ol li article, [class*="product-card"]').locator('visible=true');
     const products: Product[] = [];
     
     await this.page.waitForTimeout(2000);
@@ -72,8 +81,8 @@ export class SearchResultsPage {
 
     for (let i = 0; i < count; i++) {
       const card = productCards.nth(i);
-      const name = await card.locator('h5, [class*="card-title"]').first().innerText().catch(() => 'Producto sin nombre');
-      const priceText = await card.locator('[class*="card-price"], p.a-card-discount').first().innerText().catch(() => '$0');
+      const name = await card.locator('h5, [class*="card-title"], .a-card-description').first().innerText().catch(() => 'Producto');
+      const priceText = await card.locator('.a-card-discount, [class*="card-price"], .a-card-price').first().innerText().catch(() => '$0');
       
       const price = parseFloat(priceText.replace(/[^0-9.]/g, '')) || 0;
       products.push({ name: name.trim(), price });
