@@ -1,39 +1,47 @@
-name: Playwright Tests
+name: Liverpool Playwright Tests
+
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
+  workflow_dispatch:
+
 jobs:
   test:
-    timeout-minutes: 60
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - uses: actions/setup-node@v4
-      with:
-        node-version: lts/*
-        
-    - name: Install dependencies
-      # Accedemos a la subcarpeta real donde se encuentra tu package.json
-      run: |
-        cd liverpool-playwright-automation/liverpool-playwright-automation
-        npm install
-        
-    - name: Install Playwright Browsers
-      run: |
-        cd liverpool-playwright-automation/liverpool-playwright-automation
-        npx playwright install --with-deps
-        
-    - name: Run Playwright tests
-      run: |
-        cd liverpool-playwright-automation/liverpool-playwright-automation
-        npx playwright test
-        
-    - uses: actions/upload-artifact@v4
-      if: ${{ !cancelled() }}
-      with:
-        name: playwright-report
-        path: liverpool-playwright-automation/liverpool-playwright-automation/playwright-report/
-        retention-days: 30
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: |
+          cd liverpool-playwright-automation/liverpool-playwright-automation
+          npm install
+
+      - name: Install Playwright browser
+        run: |
+          cd liverpool-playwright-automation/liverpool-playwright-automation
+          npx playwright install --with-deps chromium
+
+      - name: Run tests headless
+        env:
+          HEADLESS: "true"
+        run: |
+          cd liverpool-playwright-automation/liverpool-playwright-automation
+          npx playwright test
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-html-report
+          path: liverpool-playwright-automation/liverpool-playwright-automation/playwright-report/
+          retention-days: 14
